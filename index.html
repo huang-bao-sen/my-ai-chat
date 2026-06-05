@@ -2,81 +2,245 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>豆包AI聊天助手</title>
+    <title>商品管理系统 - 支付页面</title>
     <style>
-        :root{
-            --bg:#ffffff;
-            --text:#222222;
-            --border:#cccccc;
-            --user-color:#2b7cd3;
-            --ai-color:#333333;
-            --input-bg:#fff;
+        :root {
+            --bg: #fff;
+            --text: #222;
+            --card: #f9f9f9;
+            --border: #ddd;
+            --btn: #409eff;
         }
-        html.dark{
-            --bg:#1a1a1a;
-            --text:#eeeeee;
-            --border:#444444;
-            --user-color:#63b8ff;
-            --ai-color:#dddddd;
-            --input-bg:#2d2d2d;
+        .dark {
+            --bg: #16161a;
+            --text: #f0f0f0;
+            --card: #232329;
+            --border: #444;
+            --btn: #3b8aff;
         }
-        *{margin:0;padding:0;box-sizing:border-box}
-        body{padding:30px;max-width:800px;margin:0 auto;background:var(--bg);color:var(--text);transition:background-color 0.25s,color 0.25s;}
-        .top-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;}
-        #content{min-height:400px;border:1px var(--border) solid;padding:15px;margin-bottom:15px;border-radius:6px;background:var(--bg);}
-        .user{color:var(--user-color);margin:8px 0;white-space:pre-wrap;}
-        .ai{color:var(--ai-color);margin:8px 0;white-space:pre-wrap;}
-        #input-box{display:flex;gap:8px}
-        #txt{flex:1;padding:10px;border:1px var(--border) solid;border-radius:4px;background:var(--input-bg);color:var(--text);outline:none;}
-        button{padding:10px 22px;background:#409eff;color:#fff;border:none;border-radius:4px;cursor:pointer}
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            transition: background 0.2s, color 0.2s;
+        }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 8px 16px;
+            background: var(--btn);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .page {
+            display: none;
+        }
+        .active {
+            display: block;
+        }
+        .goods-list {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .item {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 15px;
+        }
+        .item img {
+            width: 100%;
+            height: 120px;
+            background: #eee;
+            border-radius: 6px;
+        }
+        .pay-box {
+            background: var(--card);
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin-top: 20px;
+        }
+        .pay-item {
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .total {
+            font-size: 18px;
+            font-weight: bold;
+            color: #ff4d4f;
+            margin-top: 15px;
+        }
+        .pay-btn {
+            width: 100%;
+            padding: 14px;
+            background: #ff4d4f;
+            font-size: 16px;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
-    <div class="top-bar">
-        <h2>豆包AI聊天助手</h2>
-        <button id="darkBtn">切换夜间模式</button>
+
+<header>
+    <h2>商品管理系统</h2>
+    <div>
+        <button onclick="toggleDark()">夜间模式</button>
+        <button onclick="goPage('cart')">购物车</button>
     </div>
-    <div id="content"></div>
-    <div id="input-box">
-        <input id="txt" placeholder="输入内容，回车发送">
-        <button id="send" onclick="sendMsg()">发送</button>
+</header>
+
+<!-- 商品列表页面 -->
+<div id="page-goods" class="page active">
+    <button onclick="goPage('admin')">进入商品管理</button>
+    <div class="goods-list" id="goodsList"></div>
+</div>
+
+<!-- 商品管理页面 -->
+<div id="page-admin" class="page">
+    <button onclick="goPage('goods')">返回商品列表</button>
+    <h3 style="margin:15px 0">商品管理</h3>
+    <input id="gName" placeholder="商品名" style="padding:8px;width:200px">
+    <input id="gPrice" placeholder="价格" style="padding:8px;width:120px">
+    <button onclick="addGood()">添加商品</button>
+    <div id="adminList" style="margin-top:20px"></div>
+</div>
+
+<!-- 购物车页面 -->
+<div id="page-cart" class="page">
+    <button onclick="goPage('goods')">继续购物</button>
+    <h3 style="margin:15px 0">购物车</h3>
+    <div id="cartList"></div>
+    <div class="total">合计：¥ <span id="total">0</span></div>
+    <button class="pay-btn" onclick="goPage('pay')">去结算支付</button>
+</div>
+
+<!-- 支付页面 -->
+<div id="page-pay" class="page">
+    <button onclick="goPage('cart')">返回购物车</button>
+    <div class="pay-box">
+        <h3>确认支付</h3>
+        <div id="payInfo"></div>
+        <div class="total">支付金额：¥ <span id="payTotal">0</span></div>
+        <button class="pay-btn" onclick="paySuccess()">确认支付</button>
     </div>
-    <script>
-        const content = document.getElementById('content')
-        const input = document.getElementById('txt')
-        const darkBtn = document.getElementById('darkBtn')
+</div>
 
-        // 夜间模式本地存储
-        let isDark = localStorage.getItem('dark') === 'true'
-        if(isDark) document.documentElement.classList.add('dark')
-        darkBtn.onclick = () => {
-            isDark = !isDark
-            document.documentElement.classList.toggle('dark')
-            localStorage.setItem('dark', isDark)
-        }
+<script>
+    let isDark = localStorage.getItem('dark') === 'true'
+    if (isDark) document.documentElement.classList.add('dark')
 
-        // 豆包中转接口（已解决跨域，直连豆包大模型）
-        async function sendMsg(){
-            let text = input.value.trim()
-            if(!text) return
-            content.innerHTML += `<div class="user">我：${text}</div>`
-            input.value = ''
-            let waitStr = '<div class="ai">豆包：思考中...</div>'
-            content.innerHTML += waitStr
-            content.scrollTop = content.scrollHeight
+    function toggleDark() {
+        isDark = !isDark
+        document.documentElement.classList.toggle('dark')
+        localStorage.setItem('dark', isDark)
+    }
 
-            try {
-                // 跨域中转代理，后端代为请求豆包官方API
-                let res = await fetch(`https://cors-proxy.vercel.app/api/doubao?msg=${encodeURIComponent(text)}`)
-                let resData = await res.json()
-                content.innerHTML = content.innerHTML.replace("豆包：思考中...", `豆包：${resData.reply}`)
-            } catch (err) {
-                content.innerHTML = content.innerHTML.replace("豆包：思考中...", "⚠️豆包接口暂时繁忙，请稍后重试！")
-            }
-            content.scrollTop = content.scrollHeight
-        }
-        // 回车发送
-        input.addEventListener('keydown',e=>e.key==='Enter'&&sendMsg())
-    </script>
+    let goods = [
+        { id: 1, name: '商品A', price: 99 },
+        { id: 2, name: '商品B', price: 199 },
+        { id: 3, name: '商品C', price: 299 }
+    ]
+    let cart = []
+
+    // 页面切换
+    function goPage(name) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'))
+        document.getElementById('page-' + name).classList.add('active')
+        if (name === 'goods') renderGoods()
+        if (name === 'cart') renderCart()
+        if (name === 'admin') renderAdmin()
+        if (name === 'pay') renderPay()
+    }
+
+    // 渲染商品
+    function renderGoods() {
+        let html = ''
+        goods.forEach(g => {
+            html += `
+            <div class="item">
+                <div></div>
+                <h4>${g.name}</h4>
+                <p>¥${g.price}</p>
+                <button onclick="addToCart(${g.id})">加入购物车</button>
+            </div>`
+        })
+        document.getElementById('goodsList').innerHTML = html
+    }
+
+    // 加入购物车
+    function addToCart(id) {
+        let g = goods.find(x => x.id === id)
+        cart.push(g)
+        alert('已加入购物车')
+    }
+
+    // 渲染购物车
+    function renderCart() {
+        let html = ''
+        let total = 0
+        cart.forEach((g, i) => {
+            html += `<div class="pay-item">${g.name} - ¥${g.price}</div>`
+            total += g.price
+        })
+        document.getElementById('cartList').innerHTML = html
+        document.getElementById('total').innerText = total
+    }
+
+    // 渲染支付页面
+    function renderPay() {
+        let html = ''
+        let total = 0
+        cart.forEach(g => {
+            html += `<div class="pay-item">${g.name} - ¥${g.price}</div>`
+            total += g.price
+        })
+        document.getElementById('payInfo').innerHTML = html
+        document.getElementById('payTotal').innerText = total
+    }
+
+    // 支付成功
+    function paySuccess() {
+        alert('支付成功！')
+        cart = []
+        goPage('goods')
+    }
+
+    // 管理员添加商品
+    function addGood() {
+        let name = document.getElementById('gName').value
+        let price = +document.getElementById('gPrice').value
+        if (!name || !price) return
+        goods.push({ id: goods.length + 1, name, price })
+        renderAdmin()
+    }
+
+    function renderAdmin() {
+        let html = ''
+        goods.forEach(g => {
+            html += `<div class="pay-item">${g.name}  ¥${g.price}</div>`
+        })
+        document.getElementById('adminList').innerHTML = html
+    }
+
+    // 初始化
+    goPage('goods')
+</script>
 </body>
 </html>
